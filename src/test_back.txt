@@ -1,0 +1,73 @@
+#include "./backend/parser.h"
+#include <stdlib.h>
+#include <ctype.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+
+#suite Tsuite1
+#tcase Tcase1
+
+
+#test test_not_found_file
+Vertexes test_v = {0 , NULL};
+Facets test_f = {0 , NULL};
+int error = 1;
+error = parser("models/cub.obj", &test_v, &test_f);
+ck_assert_int_eq(error, 1);
+free(test_v.arg);
+free(test_f.arg);
+
+#test test_scale_func
+Vertexes test_v = {0 , NULL};
+Facets test_f = {0 , NULL};
+Vertexes test_v_scale = {0 , NULL};
+double scale = 2;
+
+parser("models/cube.obj", &test_v, &test_f);
+parser("models/cube.obj", &test_v_scale, &test_f);
+scaleObj(&test_v_scale, scale);
+
+for (int i = 3; i  < test_v.count ; i++) {
+  ck_assert_double_eq(test_v.arg[i], test_v_scale.arg[i] / scale);
+}
+
+free(test_v.arg);
+free(test_f.arg);
+free(test_v_scale.arg);
+
+
+#test test_move_func
+Vertexes test_v = {0 , NULL};
+Facets test_f = {0 , NULL};
+Vertexes test_v_scale = {0 , NULL};
+Move move = {0, 0, 0};
+move.dx = 3;
+move.dy = 2;
+move.dz = 1;
+
+parser("models/cube.obj", &test_v, &test_f);
+parser("models/cube.obj", &test_v_scale, &test_f);
+moveObj(&test_v_scale, move);
+
+for (int i = 3; i < test_v.count ; i += 3) {
+  ck_assert_double_eq(test_v.arg[i], test_v_scale.arg[i] - move.dx);
+  ck_assert_double_eq(test_v.arg[i + 1], test_v_scale.arg[i + 1] - move.dy);
+  ck_assert_double_eq(test_v.arg[i + 2], test_v_scale.arg[i + 2] - move.dz);
+}
+
+free(test_v.arg);
+free(test_f.arg);
+free(test_v_scale.arg);
+
+
+#test test_rotate_func
+Vertexes test_v = {0 , NULL};
+Rotate rotate = {M_PI, M_PI, M_PI};
+test_v.count = 6;
+double array[3] = {1, 1, 1};
+test_v.arg = array;
+rotationObj(&test_v, rotate);
+ck_assert_double_eq(test_v.arg[0], 1);
+ck_assert_double_eq(test_v.arg[1], 1);
+ck_assert_double_eq(test_v.arg[2], 1);
